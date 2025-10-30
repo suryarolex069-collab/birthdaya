@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Birthday Surprise</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "Segoe UI", sans-serif;
+        background: linear-gradient(to bottom, #ffecd2, #fcb69f);
+        overflow-x: hidden;
+      }
+
+      #fireworksCanvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: -1;
+        pointer-events: none;
+      }
+
+      .centered {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: #d84315;
+        transition: opacity 1s ease, transform 1s ease;
+        padding: 20px;
+      }
+
+      .fade-out {
+        opacity: 0;
+        transform: scale(1.05);
+        pointer-events: none;
+      }
+
+      h1 {
+        font-size: 2em;
+        color: #ff5e78;
+        text-shadow: 0 0 5px #fff3f3, 0 0 10px #ffcdd2;
+      }
+
+      h2 {
+        font-size: 1.4em;
+        color: #ff8a80;
+        text-shadow: 0 0 5px #ffe0e0, 0 0 8px #ffccbc;
+      }
+
+      .button {
+        padding: 10px 25px;
+        font-size: 1em;
+        font-weight: bold;
+        background: linear-gradient(45deg, #ff5e78, #ffb6b9);
+        border: none;
+        border-radius: 25px;
+        color: white;
+        cursor: pointer;
+        margin: 10px;
+      }
+
+      .button:hover {
+        transform: scale(1.05);
+      }
+
+      #main,
+      #photoSurprise,
+      #cardScreen {
+        display: none;
+        padding: 20px;
+      }
+
+      .carousel {
+        width: 90vw;
+        max-width: 400px;
+        height: 90vw;
+        max-height: 400px;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+        position: relative;
+      }
+
+      .carousel img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center 25%;
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+
+      .carousel img.active {
+        display: block;
+        animation: fadeIn 1s ease-in-out;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .controls {
+        margin-top: 15px;
+      }
+
+      .controls button {
+        margin: 0 10px;
+        padding: 8px 15px;
+        background: rgba(255, 105, 135, 0.2);
+        border: none;
+        border-radius: 8px;
+        color: #d84315;
+        cursor: pointer;
+      }
+
+      .photo-message {
+        margin-top: 20px;
+        font-size: 1.1em;
+        color: #0bd9e0;
+        /* text-shadow: 1px 1px 5px white; */
+      }
+
+      .card {
+        background: white;
+        color: #bf360c;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+        max-width: 600px;
+        margin: auto;
+        font-family: "Georgia", serif;
+      }
+
+      .card h2 {
+        color: #ff5e78;
+        font-size: 1.6em;
+      }
+
+      .card p {
+        font-size: 1.1em;
+        line-height: 1.6;
+      }
+
+      .replay {
+        margin-top: 30px;
+        font-size: 0.9em;
+        opacity: 0.8;
+        cursor: pointer;
+        color: #d84315;
+        text-decoration: underline;
+      }
+
+      .fake-input {
+        background: white;
+        color: #d84315;
+        border-radius: 10px;
+        padding: 15px 20px;
+        font-size: 1.1em;
+        margin: 10px;
+        width: 90%;
+        max-width: 400px;
+        border: none;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+      }
+
+      @media (max-width: 500px) {
+        h1 {
+          font-size: 1.6em;
+        }
+        h2 {
+          font-size: 1.2em;
+        }
+        .button {
+          padding: 10px 20px;
+          font-size: 0.95em;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="fireworksCanvas"></canvas>
+
+    <div id="intro" class="centered">
+      <h1>It’s your birthday, sorry for being late 😅</h1>
+      <input class="fake-input" id="autoType" readonly value="" />
+      <button class="button" onclick="revealSurprise()">Search</button>
+    </div>
+
+    <div id="main" class="centered">
+      <h1>🎉 Happy Birthday, <span id="name">Nia Euge</span>! 🎉</h1>
+      <h2>Today is all about you! 💖✨</h2>
+      <button class="button" onclick="showPhoto()">
+        Get a Sweet Surprise!
+      </button>
+    </div>
+
+    <div id="photoSurprise" class="centered">
+      <div class="carousel" id="carousel"></div>
+      <div class="controls">
+        <button onclick="prevSlide()">⏮️ Prev</button>
+        <button onclick="nextSlide()">⏭️ Next</button>
+      </div>
+      <div class="photo-message" id="wishMessage"></div>
+      <button class="button" onclick="showCard()">One Last Thing...</button>
+    </div>
+
+    <div id="cardScreen" class="centered">
+      <div class="card">
+        <h2>🎁 From Me to You</h2>
+        <p>
+          Dear Niaaaa Euguuuuu,<br /><br />
+          You bring so much light to everyone around you. I hope this birthday
+          is filled with love, joy, and everything your heart desires. Thank you
+          for being you. 💗<br /><br />
+          With all my heart,<br />
+          💌 Always yours
+        </p>
+      </div>
+      <div class="replay" onclick="location.reload()">🔁 Replay</div>
+    </div>
+
+    <audio id="bgMusic" src="birthday.mp3" preload="auto"></audio>
+    <audio id="beepSound" src="beep.mp3" preload="auto"></audio>
+    <audio id="popSound" src="pop.mp3" preload="auto"></audio>
+
+    <script>
+      const images = [
+        "image.png",
+        "image-1.png",
+        "image-2.png",
+        "image-3.png",
+        "image-4.png",
+        "image-5.png",
+      ];
+
+      const quotes = [
+        "You shine brighter every year 💫",
+        "You're magic in human form 💖",
+        "You make life sweeter, Birthday Girl 🎂",
+        "Your smile is sunshine ☀️",
+        "Happy Birthday sunshine",
+        "The most beautiful girl I ever seen",
+      ];
+
+      const typingText = "Today is the most beautiful girl's birthday";
+      let current = 0;
+      function typeNext() {
+        const input = document.getElementById("autoType");
+        if (current <= typingText.length) {
+          input.value = typingText.substring(0, current++);
+          setTimeout(typeNext, 70);
+        }
+      }
+      typeNext();
+
+      let currentIndex = 0;
+      let autoSlideInterval;
+
+      function revealSurprise() {
+        document
+          .getElementById("beepSound")
+          .play()
+          .catch(() => {});
+        document.getElementById("intro").classList.add("fade-out");
+        setTimeout(() => {
+          document.getElementById("intro").style.display = "none";
+          document.getElementById("main").style.display = "flex";
+          document
+            .getElementById("bgMusic")
+            .play()
+            .catch(() => {});
+          startFireworks();
+        }, 1000);
+      }
+
+      function showPhoto() {
+        document.getElementById("main").style.display = "none";
+        document.getElementById("photoSurprise").style.display = "flex";
+        setupCarousel();
+        document
+          .getElementById("popSound")
+          .play()
+          .catch(() => {});
+      }
+
+      function showCard() {
+        clearInterval(autoSlideInterval);
+        document.getElementById("photoSurprise").style.display = "none";
+        document.getElementById("cardScreen").style.display = "flex";
+      }
+
+      function setupCarousel() {
+        const carousel = document.getElementById("carousel");
+        carousel.innerHTML = "";
+        currentIndex = 0;
+        images.forEach((src, i) => {
+          const img = document.createElement("img");
+          img.src = src;
+          if (i === 0) img.classList.add("active");
+          carousel.appendChild(img);
+        });
+        document.getElementById("wishMessage").innerText = quotes[0];
+        autoSlideInterval = setInterval(nextSlide, 4000);
+      }
+
+      function showSlide(index) {
+        const slides = document.querySelectorAll("#carousel img");
+        slides.forEach((img, i) => img.classList.toggle("active", i === index));
+        document.getElementById("wishMessage").innerText =
+          quotes[index % quotes.length];
+      }
+
+      function nextSlide() {
+        currentIndex = (currentIndex + 1) % images.length;
+        showSlide(currentIndex);
+      }
+
+      function prevSlide() {
+        currentIndex = (currentIndex - 1 + images.length) % images.length;
+        showSlide(currentIndex);
+      }
+
+      function startFireworks() {
+        const canvas = document.getElementById("fireworksCanvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        function drawFirework(x, y, radius, color) {
+          for (let i = 0; i < 20; i++) {
+            const angle = (Math.PI * 2 * i) / 20;
+            const dx = Math.cos(angle) * radius;
+            const dy = Math.sin(angle) * radius;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + dx, y + dy);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          }
+        }
+
+        setInterval(() => {
+          const x = Math.random() * canvas.width;
+          const y = Math.random() * canvas.height * 0.6;
+          const radius = 50 + Math.random() * 30;
+          const colors = ["#00e5ff", "#ffff00", "#ff4081", "#ffffff"];
+          drawFirework(
+            x,
+            y,
+            radius,
+            colors[Math.floor(Math.random() * colors.length)]
+          );
+          ctx.fillStyle = "rgba(0,0,0,0.1)";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }, 400);
+      }
+    </script>
+  </body>
+</html>
